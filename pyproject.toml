@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "my-fft"
+version = "0.1.0"
+requires-python = ">=3.12"
+readme = "README.md"
+homepage = "https://github.com/..."
+dependencies = ["numpy", "matplotlib", "librosa", "soundfile", "scipy"]
+
+[project.scripts]
+run = "my-fft.py:main"
+
+[project.gui-scripts]
+my_gui_command = "my-fft.gui_module:start_gui"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests"]
+
+[tool.setuptools]
+include-package-data = true
