@@ -1,6 +1,6 @@
     python -m venv myenv 
     source venv/Scripts/activate
-    
+    source .env
     python src/my-fft.py
 
 
@@ -24,3 +24,8 @@ SQL will be extended to link to ontology and possibily to add free tags that cou
             stf
         Sustained
             bowed
+
+## Environment
+
+    LEE_DB_FILE             ffts.sqlite3
+    LEE_TABLE_SEPECTROGRAMS    mel_spectrograms
