@@ -70,9 +70,9 @@ def plot_clusters(data, clusters):
     # Plot the clusters
     scatter = plt.scatter(data_2d[:, 0], data_2d[:, 1], c=clusters, cmap='viridis', marker='o', edgecolor='k')
     plt.colorbar(scatter)
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.title('Clusters of Mel Spectrograms')
+    # plt.xlabel('Principal Component 1')
+    # plt.ylabel('Principal Component 2')
+    plt.title('WAV Clusters')
     plt.show()
 
 def main():
