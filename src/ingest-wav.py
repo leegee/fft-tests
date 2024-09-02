@@ -70,7 +70,7 @@ def save_data_to_sql(mel_spectrogram, filename, db_connection):
     
     # Create table if not exists
     cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS {os.getenv('LEE_TABLE_SEPECTROGRAMS') or 'mel_spectrograms'} (
+        CREATE TABLE IF NOT EXISTS {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             filename TEXT NOT NULL,
             spectrogram BLOB
@@ -84,7 +84,7 @@ def save_data_to_sql(mel_spectrogram, filename, db_connection):
     
     # Insert data into the database
     cursor.execute(f'''
-        INSERT INTO {os.getenv('LEE_TABLE_SEPECTROGRAMS') or 'mel_spectrograms'} (filename, spectrogram)
+        INSERT INTO {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')} (filename, spectrogram)
         VALUES (?, ?)
     ''', (filename, blob))
     
