@@ -40,7 +40,7 @@ def mel_filterbank(samplerate, n_filters, n_fft):
 def apply_mel_filterbank(fft_results, mel_filters):
     """Apply Mel filterbank to FFT results."""
     fft_bins = fft_results.shape[1]
-    mel_bins = mel_filters.shape[1]  # Adjusted to match the number of FFT bins
+    mel_bins = mel_filters.shape[1] 
     
     if fft_bins != mel_bins:
         raise ValueError(f"Mismatch between FFT results and Mel filterbank dimensions: {fft_bins} != {mel_bins}")
@@ -54,9 +54,13 @@ def plot_mel_spectrogram(mel_spectrogram, filename):
     plt.colorbar(format='%+2.0f dB')
     plt.xlabel('Frames')
     plt.ylabel('Mel Filter Index')
-    plt.title('Mel Spectrogram')
+    plt.title(f'Mel Spectrogram of {filename}')
     plt.savefig(filename)
     plt.close()
+
+def save_data(mel_spectrogram, filename):
+    """Save Mel spectrogram data to a NumPy file."""
+    np.save(filename, mel_spectrogram)
 
 def process_file(filename, window_length=1024, step_size=512, n_filters=24):
     """Process a single WAV file."""
@@ -80,6 +84,9 @@ def process_file(filename, window_length=1024, step_size=512, n_filters=24):
         
         plot_mel_spectrogram(mel_left, filename.replace('.wav', '_left_mel.png'))
         plot_mel_spectrogram(mel_right, filename.replace('.wav', '_right_mel.png'))
+
+        save_data(mel_left, filename.replace('.wav', '_left_mel.npy'))
+        save_data(mel_right, filename.replace('.wav', '_right_mel.npy'))
     else:
         xf, fft_data = perform_fft(data, samplerate, window_length, step_size)
         
@@ -87,6 +94,7 @@ def process_file(filename, window_length=1024, step_size=512, n_filters=24):
         mel_data = apply_mel_filterbank(fft_data, mel_filters)
         
         plot_mel_spectrogram(mel_data, filename.replace('.wav', '_mel.png'))
+        save_data(mel_data, filename.replace('.wav', '_mel.npy'))
 
 def process_directory(directory, window_length=1024, step_size=512, n_filters=24):
     """Process all WAV files in a directory recursively."""
@@ -102,7 +110,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Process WAV files to generate Mel spectrograms.")
     parser.add_argument("path", help="Path to a WAV file or a directory containing WAV files.")
-    parser.add_argument("--window_length", type=int, default=1024, help="FFT window length.")
+    parser.add_argument("--window_length", type=int, default=256, help="FFT window length.")
     parser.add_argument("--step_size", type=int, default=512, help="Step size for FFT.")
     parser.add_argument("--n_filters", type=int, default=24, help="Number of Mel filters.")
     
