@@ -1,9 +1,11 @@
 import os
+import io
+import sqlite3
+import librosa
 import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
 from scipy.fft import fft, fftfreq
-import librosa
 
 def load_wav(filename):
     """Load WAV file."""
@@ -62,7 +64,33 @@ def save_data(mel_spectrogram, filename):
     """Save Mel spectrogram data to a NumPy file."""
     np.save(filename, mel_spectrogram)
 
-def process_file(filename, window_length=1024, step_size=512, n_filters=24):
+def save_data_to_sql(mel_spectrogram, filename, db_connection):
+    """Save Mel spectrogram data to an SQLite database."""
+    cursor = db_connection.cursor()
+    
+    # Create table if not exists
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mel_spectrograms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT NOT NULL,
+            spectrogram BLOB
+        )
+    ''')
+
+    # Convert mel_spectrogram to binary format
+    with io.BytesIO() as buffer:
+        np.save(buffer, mel_spectrogram)
+        blob = buffer.getvalue()
+    
+    # Insert data into the database
+    cursor.execute('''
+        INSERT INTO mel_spectrograms (filename, spectrogram)
+        VALUES (?, ?)
+    ''', (filename, blob))
+    
+    db_connection.commit()
+
+def process_file(filename, window_length=1024, step_size=512, n_filters=24, db_connection=None):
     """Process a single WAV file."""
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File not found: {filename}")
@@ -87,6 +115,11 @@ def process_file(filename, window_length=1024, step_size=512, n_filters=24):
 
         save_data(mel_left, filename.replace('.wav', '_left_mel.npy'))
         save_data(mel_right, filename.replace('.wav', '_right_mel.npy'))
+
+        if db_connection:
+            save_data_to_sql(mel_left, filename.replace('.wav', '_left_mel.npy'), db_connection)
+            save_data_to_sql(mel_right, filename.replace('.wav', '_right_mel.npy'), db_connection)
+
     else:
         xf, fft_data = perform_fft(data, samplerate, window_length, step_size)
         
@@ -96,14 +129,17 @@ def process_file(filename, window_length=1024, step_size=512, n_filters=24):
         plot_mel_spectrogram(mel_data, filename.replace('.wav', '_mel.png'))
         save_data(mel_data, filename.replace('.wav', '_mel.npy'))
 
-def process_directory(directory, window_length=1024, step_size=512, n_filters=24):
+        if db_connection:
+            save_data_to_sql(mel_data, filename.replace('.wav', '_mel.npy'), db_connection)
+
+def process_directory(directory, window_length=1024, step_size=512, n_filters=24, db_connection=None):
     """Process all WAV files in a directory recursively."""
     for root, dirs, files in os.walk(directory):
         for file in files:
             if file.lower().endswith('.wav'):
                 filepath = os.path.join(root, file)
                 print(f"Processing {filepath}")
-                process_file(filepath, window_length, step_size, n_filters)
+                process_file(filepath, window_length, step_size, n_filters, db_connection)
 
 def main():
     import argparse
@@ -113,15 +149,23 @@ def main():
     parser.add_argument("--window_length", type=int, default=256, help="FFT window length.")
     parser.add_argument("--step_size", type=int, default=512, help="Step size for FFT.")
     parser.add_argument("--n_filters", type=int, default=24, help="Number of Mel filters.")
+    parser.add_argument("--db", default='ffts.sqlite3', help="SQLite database file to store data.")
     
     args = parser.parse_args()
     
+    db_connection = None
+    if args.db:
+        db_connection = sqlite3.connect(args.db);
+
     if os.path.isfile(args.path):
-        process_file(args.path, args.window_length, args.step_size, args.n_filters)
+        process_file(args.path, args.window_length, args.step_size, args.n_filters, db_connection)
     elif os.path.isdir(args.path):
-        process_directory(args.path, args.window_length, args.step_size, args.n_filters)
+        process_directory(args.path, args.window_length, args.step_size, args.n_filters, db_connection)
     else:
         raise ValueError("The provided path is neither a file nor a directory.")
+
+    if db_connection:
+        db_connection.close()
 
 if __name__ == "__main__":
     main()
