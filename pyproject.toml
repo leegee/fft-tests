@@ -7,11 +7,11 @@ name = "my-fft"
 version = "0.1.0"
 requires-python = ">=3.12"
 readme = "README.md"
-homepage = "https://github.com/..."
+homepage = "https://github.com/fft-tests.git"
 dependencies = ["numpy", "matplotlib", "librosa", "soundfile", "scipy"]
 
 [project.scripts]
-run = "my-fft.py:main"
+run = "ingest-wav.py:main"
 
 [project.gui-scripts]
 my_gui_command = "my-fft.gui_module:start_gui"
