@@ -1,19 +1,25 @@
-import os
 import io
+import os
+import sys
 import sqlite3
 import numpy as np
 
+# Dynamically add 'src' to the module search path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from Config import config
+
 class SpectrogramStorage:
-    def __init__(self, db_path='ffts.sqlite3'):
-        self.db_path = db_path
-        self.conn = sqlite3.connect(self.db_path)
+    def __init__(self, db_file=config.DB_FILE):
+        self.db_file = db_file
+        self.conn = sqlite3.connect(self.db_file)
         self.create_table()
 
     def create_table(self):
         """Create table to store Mel spectrograms."""
         cursor = self.conn.cursor()
         cursor.execute(f'''
-            CREATE TABLE IF NOT EXISTS {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')} (
+            CREATE TABLE IF NOT EXISTS {config.TABLE_SEPECTROGRAMS} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 filename TEXT NOT NULL,
                 spectrogram BLOB
@@ -32,7 +38,7 @@ class SpectrogramStorage:
         # Insert into the database
         cursor = self.conn.cursor()
         cursor.execute(f'''
-            INSERT INTO {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')} (filename, spectrogram)
+            INSERT INTO {config.TABLE_SEPECTROGRAMS} (filename, spectrogram)
             VALUES (?, ?)
         ''', (filename, blob))
         
@@ -41,7 +47,7 @@ class SpectrogramStorage:
     def fetch_all_spectrograms(self):
         """Fetch all Mel spectrogram data from the SQLite database."""
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT spectrogram FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')}")
+        cursor.execute(f"SELECT spectrogram FROM {config.TABLE_SEPECTROGRAMS}")
         rows = cursor.fetchall()
         
         mel_spectrograms = []
@@ -52,10 +58,17 @@ class SpectrogramStorage:
         
         return mel_spectrograms
 
+    def fetch_ids_and_paths(self):
+        """Fetch IDs and paths from the SQLite3 database."""
+        cursor = self.conn.cursor()
+        cursor.execute(f"SELECT id, filename FROM {config.TABLE_SEPECTROGRAMS}")
+        records = cursor.fetchall()
+        return records
+
     def fetch_all_records(self):
         """Fetch all Mel spectrogram data and associated metadata from the SQLite database."""
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT id, spectrogram, filename FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')}")
+        cursor.execute(f"SELECT id, spectrogram, filename FROM {config.TABLE_SEPECTROGRAMS}")
         rows = cursor.fetchall()
         
         records = []
