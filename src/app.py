@@ -1,11 +1,13 @@
 import sys
 import os
-import numpy as np
+import sounddevice as sd  
+import soundfile as sf
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,
-    QFileDialog, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QScrollArea
+    QFileDialog, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QScrollArea, QHBoxLayout
 )
 from PySide6.QtCore import Qt
+
 from SpectrogramStorage import SpectrogramStorage  # Import your existing SpectrogramStorage class
 
 # Dynamically add 'src' to the module search path
@@ -49,8 +51,8 @@ class AudioApp(QMainWindow):
 
         # Create Table Widget
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(2)
-        self.table_widget.setHorizontalHeaderLabels(["ID", "Filename"])
+        self.table_widget.setColumnCount(3)
+        self.table_widget.setHorizontalHeaderLabels(["ID", "Filename", "Play"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # Create Scroll Area for Table Widget
@@ -91,10 +93,20 @@ class AudioApp(QMainWindow):
         dir_path = QFileDialog.getExistingDirectory(self, "Select Directory")
         if dir_path:
             for file_name in os.listdir(dir_path):
-                file_path = os.path.join(dir_path, file_name)
-                mel_spectrogram = self.wav_file_to_mel_spectrogram(file_path)
-                self.storage.save_data_to_sql(mel_spectrogram, file_path)
+                if file_name.endswith('.wav'):  # Only process WAV files
+                    file_path = os.path.join(dir_path, file_name)
+                    mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
+                    self.storage.save_data_to_sql(mel_spectrogram, file_path)
             self.update_table()  # Refresh the table after ingesting a directory
+
+    def find_closest_match(self):
+        """Find the closest match for a file."""
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select the subject of your search", filter="WAV Files (*.wav)")
+
+        if file_path:
+            mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
+            closest_match_id = self.clusterer.find_closest_matches_in_db(mel_spectrogram)
+            self.select_table_row(closest_match_id)
 
     def update_table(self):
         """Update the table with data from the database."""
@@ -104,30 +116,23 @@ class AudioApp(QMainWindow):
             self.table_widget.setItem(row, 0, QTableWidgetItem(str(record_id)))
             self.table_widget.setItem(row, 1, QTableWidgetItem(filename))
 
-    def find_closest_match(self):
-        """Find the closest match for a file."""
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select the subject of your search", filter="WAV Files (*.wav)")
+            # Add Play button
+            play_button = QPushButton("Play")
+            play_button.clicked.connect(lambda _, file=filename: self.play_audio_file(file))
+            self.table_widget.setCellWidget(row, 2, play_button)
 
-        if file_path:
-            mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
-            
-            # Assuming find_closest_matches_in_db returns a list/array of closest matches
-            closest_matches = self.clusterer.find_closest_matches_in_db(mel_spectrogram)
-            
-            # Extracting the first closest match ID assuming it is a list or array
-            if isinstance(closest_matches, (list, np.ndarray)) and len(closest_matches) > 0:
-                closest_match_id = int(closest_matches[0])  # Get the first match
-            else:
-                closest_match_id = int[closest_matches]  # If it is already a single value
-            
-            if isinstance(closest_match_id, np.ndarray):  # Ensure it's a single value, not an array
-                closest_match_id = closest_match_id.item()
-            
-            # Highlight the closest match in the table
-            self.select_table_row(closest_match_id)
-
-            QMessageBox.information(self, "Closest Match", f"The closest match is: ID {closest_match_id}")
-            print(f'closest_match_id: {closest_match_id}')
+    def play_audio_file(self, file_path):
+        """Play an audio file given its file path."""
+        try:
+            print(f'Play {file_path}');
+            # Read the audio file using soundfile
+            data, samplerate = sf.read(file_path)
+            # Play the audio using scipy
+            sd.play(data, samplerate)
+            sd.wait()  # Wait until the audio finishes playing
+        except Exception as e:
+            print(f"Error playing file {file_path}: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to play audio file: {e}")
 
     def select_table_row(self, match_id):
         """Select the row in the table corresponding to the match_id."""
@@ -138,8 +143,9 @@ class AudioApp(QMainWindow):
         for row in range(self.table_widget.rowCount()):
             item = self.table_widget.item(row, 0)  # ID is in the first column
             if item and int(item.text()) == match_id:
-                print(f'Table select row for {item.text()} == {match_id} ')
+                print(f'Table select row for {item.text()} == {match_id}')
                 self.table_widget.selectRow(row)
+                self.table_widget.cellWidget(row, 2).click()  # Automatically click the Play button
                 break
 
 if __name__ == "__main__":

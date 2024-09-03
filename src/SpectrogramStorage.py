@@ -16,6 +16,9 @@ class SpectrogramStorage:
         self.conn = sqlite3.connect(self.db_file)
         self.create_table()
 
+    def drop_table(self):
+        self.storage.conn.cursor().execute(f"DROP TABLE IF EXISTS {config.TABLE_SEPECTROGRAMS}")
+
     def create_table(self):
         """Create table to store Mel spectrograms with unique filename and spectrogram hash constraints."""
         cursor = self.conn.cursor()
