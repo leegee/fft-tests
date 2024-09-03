@@ -7,6 +7,8 @@ from scipy.io import wavfile
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from Config import config
+
 from AudioProcessor import AudioProcessor
 from SpectrogramStorage import SpectrogramStorage
 from SpectrogramPlotter import SpectrogramPlotter
@@ -21,11 +23,11 @@ def play_wav(filename):
 def main():
     parser = argparse.ArgumentParser(description="Find closest matches to a WAV file in the database.")
     parser.add_argument("wav_path", help="Path to a WAV file to find closest matches for.")
-    parser.add_argument("--window_length", type=int, default=256, help="FFT window length.")
-    parser.add_argument("--step_size", type=int, default=512, help="Step size for FFT.")
-    parser.add_argument("--n_filters", type=int, default=24, help="Number of Mel filters.")
-    parser.add_argument("--db", default='ffts.sqlite3', help="SQLite database file to store data.")
-    parser.add_argument("--num_matches", type=int, default=5, help="Number of closest matches to find.")
+    parser.add_argument("--window_length", type=int, default=config.FFT_WINDOW_SIZE, help="FFT window length.")
+    parser.add_argument("--step_size", type=int, default=config.FFT_STEP_SIZE, help="Step size for FFT.")
+    parser.add_argument("--n_filters", type=int, default=config.FFT_N_FILTERS, help="Number of Mel filters.")
+    parser.add_argument("--db", default=config.DB_FILE, help="SQLite database file to store data.")
+    parser.add_argument("--num_matches", type=int, default=config.NUM_MATCHES, help="Number of closest matches to find.")
     
     args = parser.parse_args()
 

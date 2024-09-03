@@ -1,8 +1,10 @@
     python -m venv myenv 
     source venv/Scripts/activate
     source .env
-    python src/my-fft.py
-
+    
+    python src/scripts/ingest.py samples/
+    python src/scripts/cluster.py
+    python src/scripts/find.py samples/Lo-fi/snare/snare1.wav
 
 Processes WAV by FFT through a Mel Filterbank ready for feature detection.
 

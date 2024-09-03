@@ -1,5 +1,6 @@
-import os
 import io
+import os
+import sys
 import sqlite3
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -7,13 +8,18 @@ from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
+# Dynamically add 'src' to the module search path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from Config import config
+
 def fetch_all_spectrograms(db_path):
     # Connect to the file database
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     # Fetch all rows from the table where mel spectrograms are stored
-    cursor.execute(f"SELECT spectrogram FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS') or 'mel_spectrograms'}")
+    cursor.execute(f"SELECT spectrogram FROM {config.TABLE_SEPECTROGRAMS}")
     rows = cursor.fetchall()
 
     # Convert fetched data to a list of arrays
@@ -79,7 +85,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Perform DBSCAN clustering on Mel spectrogram data stored in SQLite.")
-    parser.add_argument("--db", default=(os.getenv('LEE_DB_FILE') or './ffts.sqlite3'), help="Path to the SQLite database file.")
+    parser.add_argument("--db", default=(config.DB_FILE), help="Path to the SQLite database file.")
     
     args = parser.parse_args()
 

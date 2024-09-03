@@ -1,11 +1,17 @@
-import os
 import io
+import os
+import sys
 import sqlite3
 import librosa
 import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
 from scipy.fft import fft, fftfreq
+
+# Dynamically add 'src' to the module search path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from Config import config
 
 def load_wav(filename):
     """Load WAV file."""
@@ -152,10 +158,10 @@ def main():
 
     parser = argparse.ArgumentParser(description="Process WAV files to generate Mel spectrograms.")
     parser.add_argument("path", help="Path to a WAV file or a directory containing WAV files.")
-    parser.add_argument("--window_length", type=int, default=256, help="FFT window length.")
-    parser.add_argument("--step_size", type=int, default=512, help="Step size for FFT.")
-    parser.add_argument("--n_filters", type=int, default=24, help="Number of Mel filters.")
-    parser.add_argument("--db", default='ffts.sqlite3', help="SQLite database file to store data.")
+    parser.add_argument("--window_length", type=int, default=config.FFT_WINDOW_SIZE, help="FFT window length.")
+    parser.add_argument("--step_size", type=int, default=config.FFT_STEP_SIZE, help="Step size for FFT.")
+    parser.add_argument("--n_filters", type=int, default=config.FFT_N_FILTERS, help="Number of Mel filters.")
+    parser.add_argument("--db", default=config.DB_FILE, help="SQLite database file to store data.")
     
     args = parser.parse_args()
     

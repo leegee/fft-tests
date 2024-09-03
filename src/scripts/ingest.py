@@ -5,6 +5,7 @@ import sys
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from Config import config
 from AudioProcessor import AudioProcessor
 from SpectrogramPlotter import SpectrogramPlotter
 from SpectrogramStorage import SpectrogramStorage
@@ -32,10 +33,10 @@ def process_directory(directory_path, audio_processor, storage, plotter):
 def main():
     parser = argparse.ArgumentParser(description="Process and cluster WAV files.")
     parser.add_argument("path", help="Path to a WAV file or a directory containing WAV files.")
-    parser.add_argument("--window_length", type=int, default=256, help="FFT window length.")
-    parser.add_argument("--step_size", type=int, default=512, help="Step size for FFT.")
-    parser.add_argument("--n_filters", type=int, default=24, help="Number of Mel filters.")
-    parser.add_argument("--db", default='ffts.sqlite3', help="SQLite database file to store data.")
+    parser.add_argument("--window_length", type=int, default=config.FFT_WINDOW_SIZE, help="FFT window length.")
+    parser.add_argument("--step_size", type=int, default=config.FFT_STEP_SIZE, help="Step size for FFT.")
+    parser.add_argument("--n_filters", type=int, default=config.FFT_N_FILTERS, help="Number of Mel filters.")
+    parser.add_argument("--db", default=config.DB_FILE, help="SQLite database file to store data.")
     
     args = parser.parse_args()
 

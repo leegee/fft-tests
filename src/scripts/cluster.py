@@ -5,6 +5,7 @@ import numpy as np
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from Config import config
 from SpectrogramStorage import SpectrogramStorage
 from DataClusterer import DataClusterer
 
@@ -12,7 +13,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Process and cluster WAV files.")
-    parser.add_argument("--db", default='ffts.sqlite3', help="SQLite database file to store data.")
+    parser.add_argument("--db", default=config.DB_FILE, help="SQLite database file to store data.")
     
     args = parser.parse_args()
 
