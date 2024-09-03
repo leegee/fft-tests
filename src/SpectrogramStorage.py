@@ -3,6 +3,7 @@ import os
 import sys
 import sqlite3
 import numpy as np
+import hashlib
 
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -16,33 +17,45 @@ class SpectrogramStorage:
         self.create_table()
 
     def create_table(self):
-        """Create table to store Mel spectrograms."""
+        """Create table to store Mel spectrograms with unique filename and spectrogram hash constraints."""
         cursor = self.conn.cursor()
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {config.TABLE_SEPECTROGRAMS} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                filename TEXT NOT NULL,
-                spectrogram BLOB
+                filename TEXT NOT NULL UNIQUE,
+                spectrogram BLOB,
+                spectrogram_hash TEXT NOT NULL UNIQUE
             )
         ''')
         self.conn.commit()
 
+    def compute_hash(self, data):
+        """Compute an MD5 hash for the given data."""
+        hasher = hashlib.md5()
+        hasher.update(data)
+        return hasher.hexdigest()
+
     def save_data_to_sql(self, mel_spectrogram, filename):
-        """Save Mel spectrogram data to an SQLite database."""
+        """Save Mel spectrogram data to an SQLite database, ensure unique spectrogram data."""
         
         # Serialize the numpy array to a binary format
         with io.BytesIO() as buffer:
             np.save(buffer, mel_spectrogram)
             blob = buffer.getvalue()
         
-        # Insert into the database
-        cursor = self.conn.cursor()
-        cursor.execute(f'''
-            INSERT INTO {config.TABLE_SEPECTROGRAMS} (filename, spectrogram)
-            VALUES (?, ?)
-        ''', (filename, blob))
+        # Compute hash of the spectrogram
+        spectrogram_hash = self.compute_hash(blob)
         
-        self.conn.commit()
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute(f'''
+                INSERT INTO {config.TABLE_SEPECTROGRAMS} (filename, spectrogram, spectrogram_hash)
+                VALUES (?, ?, ?)
+            ''', (filename, blob, spectrogram_hash))
+            self.conn.commit()
+        except sqlite3.IntegrityError as e:
+            print(f"Warning: A record with the same filename or spectrogram already exists. {e}")
+            self.conn.rollback()
     
     def fetch_all_spectrograms(self):
         """Fetch all Mel spectrogram data from the SQLite database."""
@@ -89,4 +102,3 @@ class SpectrogramStorage:
         print(f"Closing DB connection")
         self.conn.close()
         print(f"Closed DB connection")
-
