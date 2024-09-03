@@ -101,7 +101,7 @@ class GUI(QMainWindow):
         )
 
         if reply == QMessageBox.Yes:
-            self.storage.drop_table
+            self.storage.drop_table()
             self.update_table()  
 
     def ingest_file(self):
