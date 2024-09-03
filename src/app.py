@@ -4,7 +4,7 @@ import sounddevice as sd
 import soundfile as sf
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,
-    QFileDialog, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QScrollArea, QHBoxLayout
+    QFileDialog, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QScrollArea, QMenuBar, QAction
 )
 from PySide6.QtCore import Qt
 
@@ -28,26 +28,10 @@ class AudioApp(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
+        # Create the central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
-
-        # Create Buttons
-        wipe_button = QPushButton("Wipe Database")
-        wipe_button.clicked.connect(self.wipe_database)
-        layout.addWidget(wipe_button)
-
-        ingest_file_button = QPushButton("Ingest File")
-        ingest_file_button.clicked.connect(self.ingest_file)
-        layout.addWidget(ingest_file_button)
-
-        ingest_directory_button = QPushButton("Ingest Directory")
-        ingest_directory_button.clicked.connect(self.ingest_directory)
-        layout.addWidget(ingest_directory_button)
-
-        find_match_button = QPushButton("Find Closest Match")
-        find_match_button.clicked.connect(self.find_closest_match)
-        layout.addWidget(find_match_button)
 
         # Create Table Widget
         self.table_widget = QTableWidget()
@@ -63,6 +47,38 @@ class AudioApp(QMainWindow):
 
         # Initialize Table Content
         self.update_table()
+
+        # Create the Menu Bar
+        menu_bar = self.menuBar()
+
+        # Create Database Menu
+        database_menu = menu_bar.addMenu("Database")
+
+        # Add Wipe Database action
+        wipe_action = QAction("Wipe Database", self)
+        wipe_action.triggered.connect(self.wipe_database)
+        database_menu.addAction(wipe_action)
+
+        # Create Ingest Menu
+        ingest_menu = menu_bar.addMenu("Ingest")
+
+        # Add Ingest File action
+        ingest_file_action = QAction("Ingest File", self)
+        ingest_file_action.triggered.connect(self.ingest_file)
+        ingest_menu.addAction(ingest_file_action)
+
+        # Add Ingest Directory action
+        ingest_directory_action = QAction("Ingest Directory", self)
+        ingest_directory_action.triggered.connect(self.ingest_directory)
+        ingest_menu.addAction(ingest_directory_action)
+
+        # Create Match Menu
+        match_menu = menu_bar.addMenu("Match")
+
+        # Add Find Closest Match action
+        find_match_action = QAction("Find Closest Match", self)
+        find_match_action.triggered.connect(self.find_closest_match)
+        match_menu.addAction(find_match_action)
 
     def wipe_database(self):
         """Wipe the database with user confirmation."""
@@ -124,10 +140,10 @@ class AudioApp(QMainWindow):
     def play_audio_file(self, file_path):
         """Play an audio file given its file path."""
         try:
-            print(f'Play {file_path}');
+            print(f'Play {file_path}')
             # Read the audio file using soundfile
             data, samplerate = sf.read(file_path)
-            # Play the audio using scipy
+            # Play the audio using sounddevice
             sd.play(data, samplerate)
             sd.wait()  # Wait until the audio finishes playing
         except Exception as e:

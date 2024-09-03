@@ -7,15 +7,15 @@ name = "my-fft"
 version = "0.1.0"
 requires-python = ">=3.12"
 readme = "README.md"
-homepage = "https://github.com/fft-tests.git"
-dependencies = ["numpy", "matplotlib", "librosa", "soundfile", "scipy", "python-dotenv", "PySide6"]
+dependencies = ["numpy", "matplotlib", "librosa", "soundfile", "sounddevice", "scipy", "python-dotenv", "PySide6"]
 
 [project.scripts]
-run = "src/ingest-wav.py:main"
-find_most_similar_wav = "src/find_most_similar:main"
+run = "scripts.ingest.py:main"
+clsuter = "scripts.cluster.py:main"
+find = "scripts.find.py:main"
 
-[project.gui-scripts]
-my_gui_command = "my-fft.gui_module:start_gui"
+# [project.gui-scripts]
+my_gui_command = "app.py:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

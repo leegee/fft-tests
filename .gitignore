@@ -4,3 +4,4 @@ venv/
 __pycache__/
 src0/
 output/
+my_fft.egg-info/

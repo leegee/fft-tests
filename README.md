@@ -1,16 +1,14 @@
     python -m venv myenv 
     source venv/Scripts/activate
+    vi .env
     source .env
+    python -m build
     
     python src/scripts/ingest.py samples/
-    python src/scripts/cluster.py
+    python src/scripts/cluster.py # no-op atm
     python src/scripts/find.py samples/Lo-fi/snare/snare1.wav
 
-Processes WAV by FFT through a Mel Filterbank ready for feature detection.
-
-Saves spectragrams as binary and PNG, and into SQL.
-
-SQL will be extended to link to ontology and possibily to add free tags that could be used to update the ontology.
+Catalogue and search WAV files, by FFT/Mel Filterbank/DBSCAN.
 
 ## Ontoology wip:
 

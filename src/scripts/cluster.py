@@ -24,10 +24,10 @@ def main():
     print(f"Clustering")
     mel_spectrograms = storage.fetch_all_spectrograms()
     
-    # Debugging: Check the fetched spectrograms
     if mel_spectrograms:
         print(f"Fetched {len(mel_spectrograms)} spectrograms.")
         valid_spectrograms = []
+        
         for idx, mel in enumerate(mel_spectrograms):
             if isinstance(mel, np.ndarray) and mel.ndim >= 2:
                 print(f"Spectrogram {idx} shape: {mel.shape}")
