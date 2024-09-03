@@ -14,6 +14,7 @@ DEFAULT_CONFIG = {
     'TABLE_SEPECTROGRAMS': 'mel_sepectrograms',
     'DBSCAN_MIN_SAMPLES': 5,
     'DBSCAN_EPS': 0.5,
+    'PLOT_SIZE': (100,100)
 }
 
 class Config:

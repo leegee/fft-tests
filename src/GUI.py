@@ -134,9 +134,14 @@ class GUI(QMainWindow):
             plt = self.plotter.plot_mel_spectrogram(mel_spectrogram, plot_path)
             print(f'Show {plot_path}')
             plt.close()
+
             closest_match_ids = self.clusterer.find_closest_matches_in_db(mel_spectrogram)
-            self.update_table()
-            self.select_table_row(closest_match_ids[0])
+            if closest_match_ids:
+                self.update_table()
+                self.select_table_row(closest_match_ids[0])
+            else:
+                QMessageBox.information(self, "No Matches", "No closest matches found.")
+
 
     def update_table(self):
         """Update the table with data from the database."""
@@ -151,7 +156,8 @@ class GUI(QMainWindow):
             if os.path.exists(plot_path):
                 pixmap = QPixmap(plot_path)
                 image_label = ClickableQLabel()
-                image_label.setPixmap(pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))  
+                # image_label.setPixmap(pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))  
+                image_label.setPixmap(pixmap.scaled(*config.PLOT_SIZE, Qt.AspectRatioMode.KeepAspectRatio))
                 # Connect the clicked signal to play the audio file
                 image_label.clicked.connect(lambda file=filename: self.play_audio_file(file))
                 self.table_widget.setCellWidget(row, 2, image_label)
