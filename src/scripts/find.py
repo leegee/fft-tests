@@ -14,11 +14,13 @@ from SpectrogramStorage import SpectrogramStorage
 from SpectrogramPlotter import SpectrogramPlotter
 from DataClusterer import DataClusterer
 
+outpuot_dir = 'output/'
+
 def play_wav(filename):
     """Play a WAV file."""
     samplerate, data = wavfile.read(filename)
     sd.play(data, samplerate)
-    sd.wait()  # Wait until the file is done playing
+    # sd.wait()  # Wait until the file is done playing
 
 def main():
     parser = argparse.ArgumentParser(description="Find closest matches to a WAV file in the database.")
@@ -46,13 +48,7 @@ def main():
 
     # Step 1: Load and process the input WAV file
     print(f"Processing input WAV file: {args.wav_path}")
-    input_spectrograms = audio_processor.process_file(args.wav_path)
-    
-    if not input_spectrograms:
-        raise ValueError("No spectrograms were generated from the provided WAV file.")
-    
-    # Assume mono or take the left channel if stereo (for now)
-    target_spectrogram = input_spectrograms['left'] if 'left' in input_spectrograms else input_spectrograms['mono']
+    target_spectrogram = audio_processor.process_file(args.wav_path)
     
     # Step 2: Fetch all stored spectrograms from the database
     records = storage.fetch_all_records()  # Fetch records including metadata
@@ -73,7 +69,7 @@ def main():
         play_wav(record['filename'])
         
         # Plot the spectrogram
-        plt = plotter.plot_mel_spectrogram(record['spectrogram'], f"closest_match_{idx}.png")
+        plt = plotter.plot_mel_spectrogram(record['spectrogram'], f"{outpuot_dir}/closest_match_{idx}.png")
         plt.show()
         print(f"Plotted closest match for filename: {record['filename']}")
         plt.close()
