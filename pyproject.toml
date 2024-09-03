@@ -14,8 +14,8 @@ run = "scripts.ingest.py:main"
 clsuter = "scripts.cluster.py:main"
 find = "scripts.find.py:main"
 
-# [project.gui-scripts]
-my_gui_command = "app.py:main"
+[project.gui-scripts]
+gui = "app.py:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
