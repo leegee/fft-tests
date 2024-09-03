@@ -63,7 +63,7 @@ class AudioProcessor:
         
         return mono_signal
 
-    def process_file(self, filename):
+    def wav_file_to_mel_spectrogram(self, filename):
         """Process a single WAV file to compute Mel spectrograms."""
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File not found: {filename}")

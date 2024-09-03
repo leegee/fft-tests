@@ -10,10 +10,10 @@ from AudioProcessor import AudioProcessor
 from SpectrogramPlotter import SpectrogramPlotter
 from SpectrogramStorage import SpectrogramStorage
 
-def process_file(filepath, audio_processor, storage, plotter):
+def wav_file_to_mel_spectrogram(filepath, audio_processor, storage, plotter):
     """Process a single WAV file and save spectrograms and plots."""
     print(f"Processing file: {filepath}")
-    spectrograms = audio_processor.process_file(filepath)
+    spectrograms = audio_processor.wav_file_to_mel_spectrogram(filepath)
 
     storage.save_data_to_sql(spectrograms, filepath)
     
@@ -28,7 +28,7 @@ def process_directory(directory_path, audio_processor, storage, plotter):
         for file in files:
             if file.lower().endswith('.wav'):
                 filepath = os.path.join(root, file)
-                process_file(filepath, audio_processor, storage, plotter)
+                wav_file_to_mel_spectrogram(filepath, audio_processor, storage, plotter)
 
 def main():
     parser = argparse.ArgumentParser(description="Process and cluster WAV files.")
@@ -47,7 +47,7 @@ def main():
 
     # Process files or directories
     if os.path.isfile(args.path):
-        process_file(args.path, audio_processor, storage, plotter)
+        wav_file_to_mel_spectrogram(args.path, audio_processor, storage, plotter)
     elif os.path.isdir(args.path):
         process_directory(args.path, audio_processor, storage, plotter)
     else:

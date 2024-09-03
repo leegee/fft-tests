@@ -1,3 +1,5 @@
+import os
+import sys
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
@@ -5,9 +7,17 @@ from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import euclidean_distances
 import matplotlib.pyplot as plt
 
+
+# Dynamically add 'src' to the module search path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from Config import config
+from SpectrogramStorage import SpectrogramStorage
+
 class DataClusterer:
-    def __init__(self, eps=0.5, min_samples=5):
+    def __init__(self, eps=config.DBSCAN_EPS, min_samples=config.DBSCAN_MIN_SAMPLES):
         self.eps = eps
+        self.storage = SpectrogramStorage()
         self.min_samples = min_samples
         self.scaler = StandardScaler()
         self.dbscan = DBSCAN(eps=self.eps, min_samples=self.min_samples)
@@ -72,7 +82,11 @@ class DataClusterer:
         ])
         return padded_spectrograms
 
-    def find_closest_matches(self, target_spectrogram, spectrograms, num_matches=5):
+    def find_closest_matches_in_db(self, target_spectrogram, num_matches=config.NUM_MATCHES):
+        spectrograms = self.storage.fetch_all_spectrograms();
+        return self.find_closest_matches(target_spectrogram, spectrograms, num_matches)
+
+    def find_closest_matches(self, target_spectrogram, spectrograms, num_matches=config.NUM_MATCHES):
         """
         Find the closest matches to the target spectrogram from a list of spectrograms.
         

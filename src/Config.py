@@ -12,6 +12,8 @@ DEFAULT_CONFIG = {
     'DB_FILE': 'ffts.sqlite3',
     'NUM_MATCHES': 5,
     'TABLE_SEPECTROGRAMS': 'mel_sepectrograms',
+    'DBSCAN_MIN_SAMPLES': 5,
+    'DBSCAN_EPS': 0.5,
 }
 
 class Config:

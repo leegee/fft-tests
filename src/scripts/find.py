@@ -48,7 +48,7 @@ def main():
 
     # Step 1: Load and process the input WAV file
     print(f"Processing input WAV file: {args.wav_path}")
-    target_spectrogram = audio_processor.process_file(args.wav_path)
+    target_spectrogram = audio_processor.wav_file_to_mel_spectrogram(args.wav_path)
     
     # Step 2: Fetch all stored spectrograms from the database
     records = storage.fetch_all_records()  # Fetch records including metadata
