@@ -27,5 +27,4 @@ SQL will be extended to link to ontology and possibily to add free tags that cou
 
 ## Environment
 
-    LEE_DB_FILE             ffts.sqlite3
-    LEE_TABLE_SEPECTROGRAMS    mel_spectrograms
+Source `.env`.
