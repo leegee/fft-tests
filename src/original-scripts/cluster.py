@@ -7,7 +7,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-def fetch_all(db_path):
+def fetch_all_spectrograms(db_path):
     # Connect to the file database
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -88,7 +88,7 @@ def main():
     if not(os.path.isfile(args.db)):
         raise ValueError(f"Cannot find the DB file at {args.db}")
     
-    mel_spectrograms = fetch_all(args.db)
+    mel_spectrograms = fetch_all_spectrograms(args.db)
     
     if mel_spectrograms.size == 0:
         print(f"No data found in the database {args.db}")

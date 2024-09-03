@@ -35,7 +35,7 @@ class SpectrogramStorage:
         
         self.conn.commit()
 
-    def fetch_all(self):
+    def fetch_all_spectrograms(self):
         """Fetch all Mel spectrogram data from the SQLite database."""
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT spectrogram FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')}")
@@ -48,6 +48,26 @@ class SpectrogramStorage:
                 mel_spectrograms.append(mel_spectrogram)
         
         return mel_spectrograms
+
+    def fetch_all_records(self):
+        """Fetch all Mel spectrogram data and associated metadata from the SQLite database."""
+        cursor = self.conn.cursor()
+        cursor.execute(f"SELECT id, spectrogram, filename FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')}")
+        rows = cursor.fetchall()
+        
+        records = []
+        for row in rows:
+            record_id, spectrogram_data, filename = row
+            # Use io.BytesIO to handle the binary data
+            with io.BytesIO(spectrogram_data) as buffer:
+                mel_spectrogram = np.load(buffer, allow_pickle=True)
+                records.append({
+                    'id': record_id,
+                    'spectrogram': mel_spectrogram,
+                    'filename': filename
+                })
+        
+        return records
 
     def close(self):
         print(f"Closing DB connection")

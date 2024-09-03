@@ -39,6 +39,14 @@ class DataClusterer:
         plt.title('WAV Clusters')
         return plt
     
+    def pad_sequences(self, sequences, max_len, num_features):
+        """Pad sequences to a uniform length."""
+        padded_sequences = np.zeros((len(sequences), max_len, num_features))
+        for i, seq in enumerate(sequences):
+            seq_len = min(seq.shape[0], max_len)
+            padded_sequences[i, :seq_len, :] = seq[:seq_len, :]
+        return padded_sequences
+    
     def pad_spectrograms(self, spectrograms):
         """
         Pad all spectrograms to the maximum shape found in the list.

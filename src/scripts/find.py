@@ -1,8 +1,8 @@
-# find_closest_matches.py
-
 import argparse
 import os
 import sys
+import sounddevice as sd
+from scipy.io import wavfile
 
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -11,6 +11,12 @@ from AudioProcessor import AudioProcessor
 from SpectrogramStorage import SpectrogramStorage
 from SpectrogramPlotter import SpectrogramPlotter
 from DataClusterer import DataClusterer
+
+def play_wav(filename):
+    """Play a WAV file."""
+    samplerate, data = wavfile.read(filename)
+    sd.play(data, samplerate)
+    sd.wait()  # Wait until the file is done playing
 
 def main():
     parser = argparse.ArgumentParser(description="Find closest matches to a WAV file in the database.")
@@ -32,6 +38,10 @@ def main():
     if not os.path.exists(args.wav_path):
         raise FileNotFoundError(f"File not found: {args.wav_path}")
 
+    # Play the WAV file before processing
+    print(f"Playing input WAV file: {args.wav_path}")
+    play_wav(args.wav_path)
+
     # Step 1: Load and process the input WAV file
     print(f"Processing input WAV file: {args.wav_path}")
     input_spectrograms = audio_processor.process_file(args.wav_path)
@@ -43,18 +53,27 @@ def main():
     target_spectrogram = input_spectrograms['left'] if 'left' in input_spectrograms else input_spectrograms['mono']
     
     # Step 2: Fetch all stored spectrograms from the database
-    stored_spectrograms = storage.fetch_all()
+    records = storage.fetch_all_records()  # Fetch records including metadata
+    
+    # Prepare lists for processing
+    spectrograms = [record['spectrogram'] for record in records]
     
     # Step 3: Find the closest matches
-    closest_indices = clusterer.find_closest_matches(target_spectrogram, stored_spectrograms, args.num_matches)
+    closest_indices = clusterer.find_closest_matches(target_spectrogram, spectrograms, args.num_matches)
     
     # Step 4: Plot the closest matches
     print(f"Found {len(closest_indices)} closest matches. Plotting...")
     for idx in closest_indices:
-        closest_spectrogram = stored_spectrograms[idx]
-        plt = plotter.plot_mel_spectrogram(closest_spectrogram, f"closest_match_{idx}.png")
+        # Retrieve the record based on the index
+        record = records[idx]
+        
+        print(f'Filename: {record['filename']}')
+        play_wav(record['filename'])
+        
+        # Plot the spectrogram
+        plt = plotter.plot_mel_spectrogram(record['spectrogram'], f"closest_match_{idx}.png")
         plt.show()
-        print(f"Plotted closest match index: {idx}")
+        print(f"Plotted closest match for filename: {record['filename']}")
         plt.close()
 
 if __name__ == "__main__":
