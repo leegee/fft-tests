@@ -50,31 +50,31 @@ class AudioProcessor:
 
         return np.dot(fft_results, mel_filters.T)
 
+    def stereo_to_mono(self, input_signal):
+        # Ensure the input is a numpy array
+        input_signal = np.array(input_signal)
+        
+        # Check if the signal is stereo
+        if input_signal.ndim != 2 or input_signal.shape[1] != 2:
+            return input_signal
+        
+        # Average the two channels
+        mono_signal = np.mean(input_signal, axis=1)
+        
+        return mono_signal
+
     def process_file(self, filename):
         """Process a single WAV file to compute Mel spectrograms."""
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File not found: {filename}")
 
-        data, samplerate = self.load_wav(filename)
-        n_fft = self.window_length
+        originalData, samplerate = self.load_wav(filename)
+
+        data = self.stereo_to_mono(originalData)
         
-        if len(data.shape) == 2:  # Stereo
-            left_channel = data[:, 0]
-            right_channel = data[:, 1]
-            
-            xf_left, fft_left = self.perform_fft(left_channel, samplerate)
-            xf_right, fft_right = self.perform_fft(right_channel, samplerate)
-            
-            mel_filters = self.mel_filterbank(samplerate)
-            
-            mel_left = self.apply_mel_filterbank(fft_left, mel_filters)
-            mel_right = self.apply_mel_filterbank(fft_right, mel_filters)
+        xf, fft_data = self.perform_fft(data, samplerate)
+        mel_filters = self.mel_filterbank(samplerate)
 
-            return {'left': mel_left, 'right': mel_right}
-        else:  # Mono
-            xf, fft_data = self.perform_fft(data, samplerate)
-            mel_filters = self.mel_filterbank(samplerate)
-            mel_data = self.apply_mel_filterbank(fft_data, mel_filters)
-            return {'mono': mel_data}
+        mel_data = self.apply_mel_filterbank(fft_data, mel_filters)
 
-
+        return mel_data

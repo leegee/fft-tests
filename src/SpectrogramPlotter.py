@@ -1,14 +1,5 @@
-import os
-import io
-import sqlite3
-import numpy as np
-import soundfile as sf
-import librosa
+
 import matplotlib.pyplot as plt
-from scipy.fft import fft, fftfreq
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN
-from sklearn.decomposition import PCA
 
 class SpectrogramPlotter:
     @staticmethod

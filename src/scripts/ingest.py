@@ -1,5 +1,6 @@
-import sys
+import argparse
 import os
+import sys
 
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -8,9 +9,27 @@ from AudioProcessor import AudioProcessor
 from SpectrogramPlotter import SpectrogramPlotter
 from SpectrogramStorage import SpectrogramStorage
 
-def main():
-    import argparse
+def process_file(filepath, audio_processor, storage, plotter):
+    """Process a single WAV file and save spectrograms and plots."""
+    print(f"Processing file: {filepath}")
+    spectrograms = audio_processor.process_file(filepath)
+
+    storage.save_data_to_sql(spectrograms, filepath)
     
+    plot_path = filepath.replace('.wav', f'.png')
+    plt = plotter.plot_mel_spectrogram(spectrograms, plot_path)
+    plt.close()
+    print(f"Processed and saved spectrograms for {filepath}")
+
+def process_directory(directory_path, audio_processor, storage, plotter):
+    """Process all WAV files in a directory and its subdirectories."""
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            if file.lower().endswith('.wav'):
+                filepath = os.path.join(root, file)
+                process_file(filepath, audio_processor, storage, plotter)
+
+def main():
     parser = argparse.ArgumentParser(description="Process and cluster WAV files.")
     parser.add_argument("path", help="Path to a WAV file or a directory containing WAV files.")
     parser.add_argument("--window_length", type=int, default=256, help="FFT window length.")
@@ -20,35 +39,21 @@ def main():
     
     args = parser.parse_args()
 
-    # Ought to only initialize the components needed as determined by cmd line args.
+    # Initialize components
     audio_processor = AudioProcessor(args.window_length, args.step_size, args.n_filters)
     storage = SpectrogramStorage(args.db)
     plotter = SpectrogramPlotter()
 
-    # Process files
+    # Process files or directories
     if os.path.isfile(args.path):
-        print(f"Processing supplied file {args.filepath}")
-        spectrograms = audio_processor.process_file(args.path)
-        storage.save_data_to_sql(mel_spectrogram, args.path)
-        for channel, mel_spectrogram in spectrograms.items():
-            plt = plotter.plot_mel_spectrogram(mel_spectrogram, args.path.replace('.wav', f'_{channel}_mel.png'))
-            plt.close()
+        process_file(args.path, audio_processor, storage, plotter)
     elif os.path.isdir(args.path):
-        for root, dirs, files in os.walk(args.path):
-            for file in files:
-                if file.lower().endswith('.wav'):
-                    filepath = os.path.join(root, file)
-                    print(f"Found file {filepath}")
-                    spectrograms = audio_processor.process_file(filepath)
-                    storage.save_data_to_sql(mel_spectrogram, filepath)
-                    for channel, mel_spectrogram in spectrograms.items():
-                        plt = plotter.plot_mel_spectrogram(mel_spectrogram, filepath.replace('.wav', f'_{channel}_mel.png'))
-                        plt.close()
+        process_directory(args.path, audio_processor, storage, plotter)
     else:
         raise ValueError("The provided path is neither a file nor a directory.")
 
     storage.close()
-    print(f"Done")
+    print("Done")
 
 if __name__ == "__main__":
     main()

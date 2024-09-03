@@ -23,18 +23,21 @@ class SpectrogramStorage:
 
     def save_data_to_sql(self, mel_spectrogram, filename):
         """Save Mel spectrogram data to an SQLite database."""
-        cursor = self.conn.cursor()
+        
+        # Serialize the numpy array to a binary format
         with io.BytesIO() as buffer:
             np.save(buffer, mel_spectrogram)
             blob = buffer.getvalue()
         
+        # Insert into the database
+        cursor = self.conn.cursor()
         cursor.execute(f'''
             INSERT INTO {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')} (filename, spectrogram)
             VALUES (?, ?)
         ''', (filename, blob))
         
         self.conn.commit()
-
+    
     def fetch_all_spectrograms(self):
         """Fetch all Mel spectrogram data from the SQLite database."""
         cursor = self.conn.cursor()

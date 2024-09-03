@@ -57,6 +57,10 @@ class DataClusterer:
         Returns:
             numpy.ndarray: Padded spectrograms in a uniform 3D array.
         """
+        print("Spectrogram shapes:")
+        for i, s in enumerate(spectrograms):
+            print(f"Spectrogram {i} shape: {s.shape}")
+            
         # Determine the maximum shape for padding
         max_rows = max(s.shape[0] for s in spectrograms)
         max_cols = max(s.shape[1] for s in spectrograms)
