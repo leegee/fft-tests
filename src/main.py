@@ -17,7 +17,7 @@ def main():
     
     args = parser.parse_args()
 
-    # Initialize the components
+    # Ought to only initialize the components needed as determined by cmd line args.
     audio_processor = AudioProcessor(args.window_length, args.step_size, args.n_filters)
     storage = SpectrogramStorage(args.db)
     plotter = SpectrogramPlotter()
@@ -25,6 +25,7 @@ def main():
 
     # Process files
     if os.path.isfile(args.path):
+        print(f"Processing supplied file {args.filepath}")
         spectrograms = audio_processor.process_file(args.path)
         for channel, mel_spectrogram in spectrograms.items():
             plotter.plot_mel_spectrogram(mel_spectrogram, args.path.replace('.wav', f'_{channel}_mel.png'))
@@ -34,7 +35,7 @@ def main():
             for file in files:
                 if file.lower().endswith('.wav'):
                     filepath = os.path.join(root, file)
-                    print(f"Processing {filepath}")
+                    print(f"Found file {filepath}")
                     spectrograms = audio_processor.process_file(filepath)
                     for channel, mel_spectrogram in spectrograms.items():
                         plotter.plot_mel_spectrogram(mel_spectrogram, filepath.replace('.wav', f'_{channel}_mel.png'))
@@ -43,6 +44,7 @@ def main():
         raise ValueError("The provided path is neither a file nor a directory.")
 
     # Clustering
+    print(f"Clustering")
     mel_spectrograms = storage.fetch_data_from_sql()
     if len(mel_spectrograms) > 0:
         max_len = max(mel.shape[0] for mel in mel_spectrograms)
@@ -52,6 +54,7 @@ def main():
         clusterer.plot_clusters(scaled_data, clusters)
 
     storage.close()
+    print(f"Done")
 
 if __name__ == "__main__":
     main()

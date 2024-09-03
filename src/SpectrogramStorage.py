@@ -2,13 +2,6 @@ import os
 import io
 import sqlite3
 import numpy as np
-import soundfile as sf
-import librosa
-import matplotlib.pyplot as plt
-from scipy.fft import fft, fftfreq
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN
-from sklearn.decomposition import PCA
 
 class SpectrogramStorage:
     def __init__(self, db_path='ffts.sqlite3'):
@@ -45,7 +38,7 @@ class SpectrogramStorage:
     def fetch_data_from_sql(self):
         """Fetch all Mel spectrogram data from the SQLite database."""
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT spectrogram FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS') or 'mel_spectrograms'}")
+        cursor.execute(f"SELECT spectrogram FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')}")
         rows = cursor.fetchall()
         
         mel_spectrograms = []
@@ -57,5 +50,7 @@ class SpectrogramStorage:
         return mel_spectrograms
 
     def close(self):
+        print(f"Closing DB connection")
         self.conn.close()
+        print(f"Closed DB connection")
 
