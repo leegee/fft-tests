@@ -21,6 +21,7 @@ class SpectrogramPlotter:
         plt.ylabel('Mel Filter Index')
         plt.title(f'Mel Spectrogram of {filename}')
         plt.savefig(filename)
-        plt.close()
+        # plt.close()
+        return plt
 
 

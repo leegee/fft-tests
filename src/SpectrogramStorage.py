@@ -35,7 +35,7 @@ class SpectrogramStorage:
         
         self.conn.commit()
 
-    def fetch_data_from_sql(self):
+    def fetch_all(self):
         """Fetch all Mel spectrogram data from the SQLite database."""
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT spectrogram FROM {os.getenv('LEE_TABLE_SEPECTROGRAMS', 'mel_spectrograms')}")

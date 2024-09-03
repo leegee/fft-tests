@@ -1,9 +1,12 @@
+import sys
 import os
+
+# Dynamically add 'src' to the module search path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from AudioProcessor import AudioProcessor
 from SpectrogramPlotter import SpectrogramPlotter
 from SpectrogramStorage import SpectrogramStorage
-from DataClusterer import DataClusterer
 
 def main():
     import argparse
@@ -21,7 +24,6 @@ def main():
     audio_processor = AudioProcessor(args.window_length, args.step_size, args.n_filters)
     storage = SpectrogramStorage(args.db)
     plotter = SpectrogramPlotter()
-    clusterer = DataClusterer()
 
     # Process files
     if os.path.isfile(args.path):
@@ -42,16 +44,6 @@ def main():
                         storage.save_data_to_sql(mel_spectrogram, filepath.replace('.wav', f'_{channel}_mel.npy'))
     else:
         raise ValueError("The provided path is neither a file nor a directory.")
-
-    # Clustering
-    print(f"Clustering")
-    mel_spectrograms = storage.fetch_data_from_sql()
-    if len(mel_spectrograms) > 0:
-        max_len = max(mel.shape[0] for mel in mel_spectrograms)
-        num_features = mel_spectrograms[0].shape[1]
-        mel_spectrograms_padded = clusterer.pad_sequences(mel_spectrograms, max_len, num_features)
-        scaled_data, clusters = clusterer.cluster_data(mel_spectrograms_padded)
-        clusterer.plot_clusters(scaled_data, clusters)
 
     storage.close()
     print(f"Done")
