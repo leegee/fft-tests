@@ -22,7 +22,7 @@ class AudioApp(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
         self.storage = SpectrogramStorage()
         self.audio_processor = AudioProcessor(config.FFT_WINDOW_SIZE, config.FFT_STEP_SIZE, config.FFT_N_FILTERS)
-        self.clusterer = DataClusterer();
+        self.clusterer = DataClusterer()
         self.init_ui()
 
     def init_ui(self):
@@ -80,7 +80,7 @@ class AudioApp(QMainWindow):
 
     def ingest_file(self):
         """Ingest a file into the database."""
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select File")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select File", filter="WAV Files (*.wav)")
         if file_path:
             mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
             self.storage.save_data_to_sql(mel_spectrogram, file_path)
@@ -96,15 +96,6 @@ class AudioApp(QMainWindow):
                 self.storage.save_data_to_sql(mel_spectrogram, file_path)
             self.update_table()  # Refresh the table after ingesting a directory
 
-    def find_closest_match(self):
-        """Find the closest match for a file."""
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select File")
-        if file_path:
-            mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
-            closest_match = self.clusterer.find_closest_matches_in_db(mel_spectrogram)
-            # closest_indices = clusterer.find_closest_matches(target_spectrogram, spectrograms, args.num_matches)
-            QMessageBox.information(self, "Closest Match", f"The closest match is: {closest_match}")
-
     def update_table(self):
         """Update the table with data from the database."""
         records = self.storage.fetch_ids_and_paths()
@@ -112,6 +103,44 @@ class AudioApp(QMainWindow):
         for row, (record_id, filename) in enumerate(records):
             self.table_widget.setItem(row, 0, QTableWidgetItem(str(record_id)))
             self.table_widget.setItem(row, 1, QTableWidgetItem(filename))
+
+    def find_closest_match(self):
+        """Find the closest match for a file."""
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select the subject of your search", filter="WAV Files (*.wav)")
+
+        if file_path:
+            mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
+            
+            # Assuming find_closest_matches_in_db returns a list/array of closest matches
+            closest_matches = self.clusterer.find_closest_matches_in_db(mel_spectrogram)
+            
+            # Extracting the first closest match ID assuming it is a list or array
+            if isinstance(closest_matches, (list, np.ndarray)) and len(closest_matches) > 0:
+                closest_match_id = int(closest_matches[0])  # Get the first match
+            else:
+                closest_match_id = int[closest_matches]  # If it is already a single value
+            
+            if isinstance(closest_match_id, np.ndarray):  # Ensure it's a single value, not an array
+                closest_match_id = closest_match_id.item()
+            
+            # Highlight the closest match in the table
+            self.select_table_row(closest_match_id)
+
+            QMessageBox.information(self, "Closest Match", f"The closest match is: ID {closest_match_id}")
+            print(f'closest_match_id: {closest_match_id}')
+
+    def select_table_row(self, match_id):
+        """Select the row in the table corresponding to the match_id."""
+        if not isinstance(match_id, int):  # Ensure match_id is an integer
+            print("Error: match_id is not an integer:", match_id)
+            return
+
+        for row in range(self.table_widget.rowCount()):
+            item = self.table_widget.item(row, 0)  # ID is in the first column
+            if item and int(item.text()) == match_id:
+                print(f'Table select row for {item.text()} == {match_id} ')
+                self.table_widget.selectRow(row)
+                break
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
