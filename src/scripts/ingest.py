@@ -29,10 +29,10 @@ def main():
     if os.path.isfile(args.path):
         print(f"Processing supplied file {args.filepath}")
         spectrograms = audio_processor.process_file(args.path)
+        storage.save_data_to_sql(mel_spectrogram, args.path)
         for channel, mel_spectrogram in spectrograms.items():
             plt = plotter.plot_mel_spectrogram(mel_spectrogram, args.path.replace('.wav', f'_{channel}_mel.png'))
             plt.close()
-            storage.save_data_to_sql(mel_spectrogram, args.path.replace('.wav', f'_{channel}_mel.npy'))
     elif os.path.isdir(args.path):
         for root, dirs, files in os.walk(args.path):
             for file in files:
@@ -40,10 +40,10 @@ def main():
                     filepath = os.path.join(root, file)
                     print(f"Found file {filepath}")
                     spectrograms = audio_processor.process_file(filepath)
+                    storage.save_data_to_sql(mel_spectrogram, filepath)
                     for channel, mel_spectrogram in spectrograms.items():
                         plt = plotter.plot_mel_spectrogram(mel_spectrogram, filepath.replace('.wav', f'_{channel}_mel.png'))
                         plt.close()
-                        storage.save_data_to_sql(mel_spectrogram, filepath.replace('.wav', f'_{channel}_mel.npy'))
     else:
         raise ValueError("The provided path is neither a file nor a directory.")
 
