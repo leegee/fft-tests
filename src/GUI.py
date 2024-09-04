@@ -1,18 +1,21 @@
+# src/GUI.py
+
 import sys
 import os
 import sounddevice as sd  
 import soundfile as sf
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QPushButton,
-    QFileDialog, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QScrollArea, QLabel
+    QFileDialog, QTableView, QMessageBox, QScrollArea, QLabel
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QPixmap, QAction
 
 # Dynamically add 'src' to the module search path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from RecordTableModel import RecordTableModel
+from  SpectrogramDelegate import SpectrogramDelegate;
 from Config import config
 from AudioProcessor import AudioProcessor
 from DataClusterer import DataClusterer
@@ -37,23 +40,28 @@ class GUI(QMainWindow):
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
 
-        # Create Table Widget
-        self.table_widget = QTableWidget()
-        self.table_widget.setStyleSheet("""
-            QTableWidget::item:selected {
+        # Create Table View
+        self.table_view = QTableView()
+        self.table_view.setStyleSheet("""
+            QTableView::item:selected {
                 background-color: #222299;
                 color: white;
             }
         """)
-        self.table_widget.setColumnCount(3)  
-        self.table_widget.setHorizontalHeaderLabels(["ID", "Filename", "Spectrogram"])
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        # Create Scroll Area for Table Widget
+        
+        # Create Scroll Area for Table View
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(self.table_widget)
+        scroll_area.setWidget(self.table_view)
         layout.addWidget(scroll_area)
+
+        # Initialize Model and Table View
+        self.model = RecordTableModel()
+        self.table_view.setModel(self.model)
+        
+        # Set custom delegate for the spectrogram column
+        self.spectrogram_delegate = SpectrogramDelegate(self.table_view)
+        self.table_view.setItemDelegateForColumn(2, self.spectrogram_delegate)
 
         # Initialize Table Content
         self.update_table()
@@ -101,8 +109,8 @@ class GUI(QMainWindow):
         )
 
         if reply == QMessageBox.Yes:
-            self.storage.drop_table()
-            self.update_table()  
+            self.storage.drop_table()  # Add parentheses to call the method
+            self.update_table()
 
     def ingest_file(self):
         """Ingest a file into the database."""
@@ -110,7 +118,7 @@ class GUI(QMainWindow):
         if file_path:
             mel_spectrogram = self.audio_processor.wav_file_to_mel_spectrogram(file_path)
             self.storage.save_data_to_sql(mel_spectrogram, file_path)
-            self.update_table() 
+            self.update_table()
 
     def ingest_directory(self):
         """Add all files from a directory"""
@@ -142,28 +150,24 @@ class GUI(QMainWindow):
             else:
                 QMessageBox.information(self, "No Matches", "No closest matches found.")
 
-
     def update_table(self):
-        """Update the table with data from the database."""
+        """Update the model with data from the database."""
         records = self.storage.fetch_ids_and_paths()
-        self.table_widget.setRowCount(len(records))
-        for row, (record_id, filename) in enumerate(records):
-            self.table_widget.setItem(row, 0, QTableWidgetItem(str(record_id)))
-            self.table_widget.setItem(row, 1, QTableWidgetItem(filename))
+        self.model.setRecords(records)
 
-            # Add Spectrogram image with clickable label
-            plot_path = filename.replace('.wav', '.png')
-            if os.path.exists(plot_path):
-                pixmap = QPixmap(plot_path)
-                image_label = ClickableQLabel()
-                # image_label.setPixmap(pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))  
-                image_label.setPixmap(pixmap.scaled(*config.PLOT_SIZE, Qt.AspectRatioMode.KeepAspectRatio))
-                # Connect the clicked signal to play the audio file
-                image_label.clicked.connect(lambda file=filename: self.play_audio_file(file))
-                self.table_widget.setCellWidget(row, 2, image_label)
-            else:
-                self.table_widget.setCellWidget(row, 2, QLabel("No Image"))
+    def select_table_row(self, match_id):
+        """Select the row in the table corresponding to the match_id."""
+        match_id = int(match_id)
+        if not isinstance(match_id, int):  # Ensure match_id is an integer
+            print("Error: match_id is not an integer:", match_id)
+            return
 
+        for row in range(self.model.rowCount()):
+            if self.model.data(self.model.index(row, 0)) == match_id:
+                print(f'Table select row for {match_id}')
+                self.table_view.selectRow(row)
+                # Implement clicking the image label if necessary
+                break
 
     def play_audio_file(self, file_path):
         """Play an audio file given its file path."""
@@ -175,19 +179,3 @@ class GUI(QMainWindow):
         except Exception as e:
             print(f"Error playing file {file_path}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to play audio file: {e}")
-
-    def select_table_row(self, match_id):
-        """Select the row in the table corresponding to the match_id."""
-        match_id = int(match_id)
-        if not isinstance(match_id, int):  # Ensure match_id is an integer
-            print("Error: match_id is not an integer:", match_id)
-            return
-
-        for row in range(self.table_widget.rowCount()):
-            item = self.table_widget.item(row, 0)  # ID is in the first column
-            if item and int(item.text()) == match_id:
-                print(f'Table select row for {item.text()} == {match_id}')
-                self.table_widget.selectRow(row)
-                self.table_widget.cellWidget(row, 2).click()  # Automatically click the Play button
-                break
-

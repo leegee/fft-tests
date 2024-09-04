@@ -7,7 +7,7 @@ name = "my-fft"
 version = "0.1.0"
 requires-python = ">=3.12"
 readme = "README.md"
-dependencies = ["numpy", "matplotlib", "librosa", "soundfile", "sounddevice", "scipy", "python-dotenv", "PySide6"]
+dependencies = ["numpy", "matplotlib", "librosa", "soundfile", "sounddevice", "scipy", "python-dotenv", "PySide6", "plotly"]
 
 [project.scripts]
 run = "scripts.ingest.py:main"

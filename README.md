@@ -8,7 +8,7 @@
     python src/scripts/cluster.py # no-op atm
     python src/scripts/find.py samples/Lo-fi/snare/snare1.wav
 
-Catalogue and search WAV files, by FFT/Mel Filterbank/DBSCAN.
+A few functional Python modules to catalogue and search WAV files, by FFT/Mel Filterbank/DBSCAN.
 
 ## Ontoology wip:
 
